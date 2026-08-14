@@ -1,0 +1,65 @@
+import java.util.Scanner;
+class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter a binary number: ");
+        String input = scanner.nextLine();
+        boolean isValid = !input.isEmpty();
+        int bitCount = 0;
+
+        for (int i=0; i<input.length(); i++) {
+            char ch=input.charAt(i);
+            if (ch=='0' || ch=='1') {
+                bitCount++;
+            } else{
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid) {
+            System.out.println("Binary Input: "+input);
+            System.out.println("Count(m): "+bitCount);
+            int r = 0;
+            while(Math.pow(2,r) < bitCount+r+1){
+                r++;
+            }
+            System.out.println("Parity Bits(r): " +r);
+            int totalLength = bitCount + r;
+            System.out.println("Total length: "+totalLength);
+            int[] arr = new int[totalLength+1];
+           
+            int dataIndex = 0;
+            for(int i=1; i<=totalLength; i++){
+                if((i&(i-1)) !=0){
+                    arr[i] = Character.getNumericValue(input.charAt(dataIndex));
+                    dataIndex++;
+                }
+            }
+            for (int i=0; i<r; i++) {
+                int parityPos = (int) Math.pow(2, i);
+                int parityValue = 0;
+           
+                for (int j = 1; j <= totalLength; j++) {
+                    if ((j & parityPos) != 0) {
+                        parityValue ^= arr[j];
+                    }
+            }
+            arr[parityPos] = parityValue;
+            }
+           
+            System.out.print("Generated Hamming Code: ");
+            for (int i = 1; i <= totalLength; i++) {
+                System.out.print(arr[i]);
+            }
+            System.out.println();
+  
+        }
+        else {
+            System.out.println("Error: Contains non-binary characters.");
+        }      
+
+        scanner.close();
+    }
+}
