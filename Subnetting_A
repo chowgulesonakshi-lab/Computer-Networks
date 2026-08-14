@@ -1,0 +1,102 @@
+import java.util.Scanner;
+
+public class IPAddressInfo {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+       
+        System.out.println("Subnet Mask : A 32-bit value used to identify the network and host portions of an IP address.");
+        System.out.println("Subnetting : The process of dividing one large network into multiple smaller, manageable subnetworks.");
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println("IP Address : A unique logical address assigned to a device on a network.");
+        System.out.println("IP Class : A category of IP addresses based on the first octet.");
+        System.out.println("Subnet Mask : A 32-bit number that separates the Network ID and Host ID.");
+        System.out.println("Network ID : The portion of an IP address that identifies the network.");
+        System.out.println("Host ID : The portion of an IP address that identifies a device within a network.");
+        System.out.println("Subnetting : The process of dividing a network into smaller subnetworks.");
+        System.out.println("Network Bits: Bits used to identify the network portion of an IP address.");
+        System.out.println("Host Bits : Bits used to identify hosts within a network.");
+        System.out.println("Hosts/Network: Maximum usable hosts in a network (2^HostBits - 2).");
+        System.out.println("No. of Networks: Total possible networks in a class (2^AvailableNetworkBits).");
+        System.out.println("Default Subnet Mask: The predefined subnet mask assigned to an IP class.");
+        System.out.println("IP Range : The minimum and maximum IP addresses belonging to a class.");
+        System.out.println("Octet : Each 8-bit section of an IPv4 address.");
+        System.out.println("--------------------------------------------------------------------");
+
+        System.out.print("Enter an IPv4 Address: ");
+        String ip = sc.nextLine();
+
+        String[] parts = ip.split("\\.");
+
+        if (parts.length != 4) {
+            System.out.println("Invalid IP Address!");
+            return;
+        }
+
+        int firstOctet;
+
+        try {
+            firstOctet = Integer.parseInt(parts[0]);
+
+            for (String part : parts) {
+                int num = Integer.parseInt(part);
+                if (num < 0 || num > 255) {
+                    System.out.println("Invalid IP Address!");
+                    return;
+                }
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid IP Address!");
+            return;
+        }
+
+        if (firstOctet >= 1 && firstOctet <= 126) {
+        System.out.println("Class : A");
+        System.out.println("Decimal Range : 0 - 127");
+        System.out.println("1st Octet Range : 1 - 126");
+        System.out.println("IP Address Range : 1.0.0.0 - 126.255.255.255");
+        System.out.println("Subnet Mask : 255.0.0.0");
+        System.out.println("Hosts/Network ID : 2^24 - 2");
+        System.out.println("No. of Networks : 2^7 (128)");
+    }
+    else if (firstOctet >= 128 && firstOctet <= 191) {
+        System.out.println("Class : B");
+        System.out.println("Decimal Range : 128 - 191");
+        System.out.println("1st Octet Range : 128 - 191");
+        System.out.println("IP Address Range : 128.0.0.0 - 191.255.255.255");
+        System.out.println("Subnet Mask : 255.255.0.0");
+        System.out.println("Hosts/Network ID : 2^16 - 2");
+        System.out.println("No. of Networks : 2^14 (16384)");
+    }
+    else if (firstOctet >= 192 && firstOctet <= 223) {
+        System.out.println("Class : C");
+        System.out.println("Decimal Range : 192 - 223");
+        System.out.println("1st Octet Range : 192 - 223");
+        System.out.println("IP Address Range : 192.0.0.0 - 223.255.255.255");
+        System.out.println("Subnet Mask : 255.255.255.0");
+        System.out.println("Hosts/Network ID : 2^8 - 2");
+        System.out.println("No. of Networks : 2^21 (2097152)");
+    }
+    else if (firstOctet >= 224 && firstOctet <= 239) {
+        System.out.println("Class : D");
+        System.out.println("Decimal Range : 224 - 239");
+        System.out.println("1st Octet Range : 224 - 239");
+        System.out.println("IP Address Range : 224.0.0.0 - 239.255.255.255");
+        System.out.println("Subnet Mask : N/A");
+        System.out.println("Hosts/Network ID : Multicast");
+        System.out.println("No. of Networks : N/A");
+    }
+    else if (firstOctet >= 240 && firstOctet <= 255) {
+        System.out.println("Class : E");
+        System.out.println("Decimal Range : 240 - 255");
+        System.out.println("1st Octet Range : 240 - 255");
+        System.out.println("IP Address Range : 240.0.0.0 - 255.255.255.255");
+        System.out.println("Subnet Mask : N/A");
+        System.out.println("Hosts/Network ID : Experimental");
+        System.out.println("No. of Networks : N/A");
+    }else {
+            System.out.println("Invalid IP Address!");
+        }
+
+        sc.close();
+    }
+}
