@@ -2,36 +2,38 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+
+        Scanner sc = new Scanner(System.in);
 
         int o1, o2, o3, o4;
         int cidr;
 
-        // 1. Get user input for Base IP and CIDR prefix
+        // Get IP address
         System.out.print("Enter base IP address (e.g., 192.168.10.0): ");
 
-        String ipAddress = scanner.nextLine();
-        String[] octets = ipAddress.split("\\.");
+        String ip = sc.nextLine();
+        String[] parts = ip.split("\\.");
 
-        if (octets.length != 4) {
+        if (parts.length != 4) {
             System.out.println("Error: Invalid IP address.");
             return;
         }
 
         try {
-            o1 = Integer.parseInt(octets[0]);
-            o2 = Integer.parseInt(octets[1]);
-            o3 = Integer.parseInt(octets[2]);
-            o4 = Integer.parseInt(octets[3]);
+            o1 = Integer.parseInt(parts[0]);
+            o2 = Integer.parseInt(parts[1]);
+            o3 = Integer.parseInt(parts[2]);
+            o4 = Integer.parseInt(parts[3]);
         } catch (NumberFormatException e) {
             System.out.println("Error: Invalid IP address.");
             return;
         }
 
+        // Get CIDR
         System.out.print("Enter CIDR prefix (e.g., 26 for /26): ");
-        cidr = scanner.nextInt();
+        cidr = sc.nextInt();
 
-        // Validate for Class C subnetting range
+        // Validate CIDR for Class C
         if (cidr < 24 || cidr > 30) {
             System.out.println(
                 "Error: This program currently supports Class C subnetting (CIDR 24 to 30)."
@@ -39,35 +41,43 @@ public class Main {
             return;
         }
 
-        // 2. Calculate the core subnetting details
+        // Calculate subnet details
         int hostBits = 32 - cidr;
 
-        // Instead of Math.pow(2, hostBits)
-        int blockSize = 1 << hostBits;
+        int blockSize = (int) Math.pow(2, hostBits);
 
         int numSubnets = 256 / blockSize;
+
         int usableHosts = blockSize - 2;
+
         int lastOctetMask = 256 - blockSize;
 
-        // Display general subnet information
+        // Display general information
         System.out.println("\n--- General Subnet Information ---");
+
         System.out.println(
             "Calculated Subnet Mask : 255.255.255." + lastOctetMask
         );
+
         System.out.println(
             "Total Usable Hosts : " + usableHosts + " per subnet"
         );
+
         System.out.println(
             "Total Subnets Created : " + numSubnets
         );
+
         System.out.println();
 
-        // 3 & 4. Calculate and display specifics for each subnet
-        for (int i = 0; i < numSubnets; ++i) {
+        // Display subnet information
+        for (int i = 0; i < numSubnets; i++) {
 
             int network = i * blockSize;
+
             int firstHost = network + 1;
+
             int lastHost = network + usableHosts;
+
             int broadcast = network + blockSize - 1;
 
             System.out.println("=========================================");
@@ -94,10 +104,11 @@ public class Main {
                 o1 + "." + o2 + "." + o3 + "." + broadcast
             );
 
-            // Print all usable IP addresses in this subnet
+            // Display usable IP addresses
             System.out.println("\nUsable IP Addresses:");
 
-            for (int j = firstHost; j <= lastHost; ++j) {
+            for (int j = firstHost; j <= lastHost; j++) {
+
                 System.out.println(
                     " " + o1 + "." + o2 + "." + o3 + "." + j
                 );
@@ -106,6 +117,6 @@ public class Main {
             System.out.println();
         }
 
-        scanner.close();
+        sc.close();
     }
 }
