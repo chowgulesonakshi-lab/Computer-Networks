@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 8080
+
+int main() {
+    int sock;
+    struct sockaddr_in server_addr;
+    float num1, num2, result;
+    char operator;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sock < 0) {
+        perror("Socket creation failed");
+        exit(1);
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // Connect to server
+    if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Connection failed");
+        close(sock);
+        exit(1);
+    }
+    printf("Connected to server.\n");
+
+    printf("Enter first number: ");
+    scanf("%f", &num1);
+    printf("Enter second number: ");
+    scanf("%f", &num2);
+    printf("Enter operator (+, -, *, /): ");
+    scanf(" %c", &operator);
+
+    // Send data to server
+    send(sock, &num1, sizeof(num1), 0);
+    send(sock, &num2, sizeof(num2), 0);
+    send(sock, &operator, sizeof(operator), 0);
+
+    // Receive result
+    recv(sock, &result, sizeof(result), 0);
+
+    // Display result
+    printf("\nResult = %.2f\n", result);
+
+    // Close socket
+    close(sock);
+
+    return 0;
+}
