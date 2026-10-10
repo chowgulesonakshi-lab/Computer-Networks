@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 8080
+
+int main() {
+    int server_fd, client_fd;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t addr_size = sizeof(client_addr);
+
+    float num1, num2, result;
+    char operator;
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0) {
+        perror("Socket creation failed");
+        exit(1);
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+
+    // Bind socket
+    if (bind(server_fd, (struct sockaddr *)&server_addr,
+             sizeof(server_addr)) < 0) {
+        perror("Bind failed");
+        close(server_fd);
+        exit(1);
+    }
+
+    // Listen for client
+    if (listen(server_fd, 5) < 0) {
+        perror("Listen failed");
+        close(server_fd);
+        exit(1);
+    }
+    printf("Server is waiting for client...\n");
+
+    // Accept client
+    client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_size);
+
+    if (client_fd < 0) {
+        perror("Accept failed");
+        close(server_fd);
+        exit(1);
+    }
+
+    printf("Client connected.\n");
+
+    // Receive data
+    recv(client_fd, &num1, sizeof(num1), 0);
+    recv(client_fd, &num2, sizeof(num2), 0);
+    recv(client_fd, &operator, sizeof(operator), 0);
+
+    switch (operator) {
+        case '+':
+            result = num1 + num2;
+            break;
+
+        case '-':
+            result = num1 - num2;
+            break;
+
+        case '*':
+            result = num1 * num2;
+            break;
+
+        case '/':
+            if (num2 == 0) {
+                result = 0;
+                printf("Division by zero is not allowed.\n");
+            } else {
+                result = num1 / num2;
+            }
+            break;
+
+        default:
+            result = 0;
+            printf("Invalid operator.\n");
+    }
+
+    send(client_fd, &result, sizeof(result), 0);
+    printf("Result sent to client: %.2f\n", result);
+
+    // Close sockets
+    close(client_fd);
+    close(server_fd);
+
+    return 0;
+}
