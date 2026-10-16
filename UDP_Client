@@ -1,0 +1,106 @@
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+using namespace std;
+
+const int PORT = 8080;
+const int BUFFER_SIZE = 1024;
+
+int main(int argc, char* argv[])
+{
+    // START
+    const char* serverIP = (argc > 1) ? argv[1] : "127.0.0.1";
+    // Pass the server's IP to communicate across a network
+
+    // Create UDP socket
+    int clientSocket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (clientSocket < 0)
+    {
+        cout << "Socket creation failed." << endl;
+        return -1;
+    }
+
+    // Fill server IP address and port number (no connect in UDP)
+    sockaddr_in serverAddress;
+    memset(&serverAddress, 0, sizeof(serverAddress));
+
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, serverIP, &serverAddress.sin_addr) <= 0)
+    {
+        cout << "Invalid server IP address." << endl;
+        close(clientSocket);
+        return -1;
+    }
+
+    // Give up on a reply after 3 seconds
+    timeval timeout{3, 0};
+
+    setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO,
+               &timeout, sizeof(timeout));
+
+    cout << "UDP calculator client. Enter expressions like: 12 * 5 "
+         << "(type exit to quit)" << endl;
+
+    char buffer[BUFFER_SIZE];
+
+    while (true)
+    {
+        // Input expression from user
+        cout << "Enter expression: ";
+
+        string expression;
+
+        if (!getline(cin, expression))
+        {
+            break;
+        }
+
+        // Send datagram to server
+        sendto(clientSocket, expression.c_str(), expression.size(), 0,
+               (sockaddr*)&serverAddress, sizeof(serverAddress));
+
+        if (expression == "exit")
+        {
+            break;
+        }
+
+        // Receive result from server
+        memset(buffer, 0, BUFFER_SIZE);
+
+        int bytesReceived = recvfrom(
+            clientSocket,
+            buffer,
+            BUFFER_SIZE - 1,
+            0,
+            nullptr,
+            nullptr
+        );
+
+        // Display server result
+        if (bytesReceived > 0)
+        {
+            cout << "Server: " << buffer << endl;
+        }
+        else
+        {
+            cout << "No reply received from server (packet may be lost)."
+                 << endl;
+        }
+    }
+
+    // Close client socket
+    close(clientSocket);
+
+    cout << "Client closed." << endl;
+
+    // STOP
+    return 0;
+}
