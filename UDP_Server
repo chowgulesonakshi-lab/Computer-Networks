@@ -1,0 +1,159 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cstring>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+using namespace std;
+
+const int PORT = 8080;
+const int BUFFER_SIZE = 1024;
+
+// Evaluates an expression of the form "a op b"
+string calculate(const string& expression)
+{
+    istringstream input(expression);
+
+    double a, b;
+    char op;
+
+    if (!(input >> a >> op >> b))
+    {
+        return "Invalid expression. Use format: a op b";
+    }
+
+    double result;
+
+    switch (op)
+    {
+        case '+':
+            result = a + b;
+            break;
+
+        case '-':
+            result = a - b;
+            break;
+
+        case '*':
+            result = a * b;
+            break;
+
+        case '/':
+            if (b == 0)
+            {
+                return "Error: Division by zero";
+            }
+
+            result = a / b;
+            break;
+
+        default:
+            return "Unsupported operator. Use + - * /";
+    }
+
+    ostringstream output;
+    output << result;
+
+    return output.str();
+}
+
+int main()
+{
+    // 1. START
+
+    // 2. Create UDP socket
+    int serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (serverSocket < 0)
+    {
+        cout << "Socket creation failed." << endl;
+        return -1;
+    }
+
+    // 3. Bind socket to IP address and port number
+    sockaddr_in serverAddress;
+    memset(&serverAddress, 0, sizeof(serverAddress));
+
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    // Accept on every interface of this machine
+
+    serverAddress.sin_port = htons(PORT);
+
+    if (bind(serverSocket, (sockaddr*)&serverAddress,
+             sizeof(serverAddress)) < 0)
+    {
+        cout << "Bind failed." << endl;
+        close(serverSocket);
+        return -1;
+    }
+
+    cout << "UDP calculator server running on port "
+         << PORT << "..." << endl;
+
+    char buffer[BUFFER_SIZE];
+    sockaddr_in clientAddress;
+    socklen_t clientLength;
+
+    while (true)
+    {
+        // 4. Receive datagram from client (no listen/accept in UDP)
+        memset(buffer, 0, BUFFER_SIZE);
+
+        clientLength = sizeof(clientAddress);
+
+        int bytesReceived = recvfrom(
+            serverSocket,
+            buffer,
+            BUFFER_SIZE - 1,
+            0,
+            (sockaddr*)&clientAddress,
+            &clientLength
+        );
+
+        if (bytesReceived < 0)
+        {
+            cout << "Receive failed." << endl;
+            continue;
+        }
+
+        // 5. Display received expression
+        string expression(buffer);
+
+        cout << "Client "
+             << inet_ntoa(clientAddress.sin_addr) << ":"
+             << ntohs(clientAddress.sin_port)
+             << " sent: " << expression << endl;
+
+        if (expression == "exit")
+        {
+            break;
+        }
+
+        // 6. Perform the operation
+        string result = calculate(expression);
+
+        cout << "Result: " << result << endl;
+
+        // 7. Send result back to the client's address
+        sendto(
+            serverSocket,
+            result.c_str(),
+            result.size(),
+            0,
+            (sockaddr*)&clientAddress,
+            clientLength
+        );
+    }
+
+    // 8. Close server socket
+    close(serverSocket);
+
+    cout << "Server closed." << endl;
+
+    // 9. STOP
+    return 0;
+}
